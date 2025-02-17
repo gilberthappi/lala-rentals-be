@@ -1,0 +1,70 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 Int            @id @default(autoincrement())
+  email              String         @unique
+  password           String
+  firstName          String
+  lastName           String
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  otp                String?
+  otpExpiresAt       DateTime? 
+
+  roles              UserRoles[]
+  property           Property[]
+  bookings           Bookings[]
+}
+
+
+model UserRoles {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  role   Role
+  user   User @relation(fields: [userId], references: [id])
+}
+
+
+model Property {
+  id                      Int           @id @default(autoincrement())
+  userId                  Int  
+  title                   String
+  location                String
+  description             String
+  pricePerNight           String
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+  isAcceptingBooking      Boolean       @default(true)
+  bookings                Bookings[]
+  user                    User        @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  ADMIN
+  HOST
+  RENTER
+}
+
+model Bookings {
+  id                Int          @id @default(autoincrement())
+  userId            Int           
+  propertyId        Int
+  checkInDate       DateTime
+  checkOutDate      DateTime
+  bookingStatus     String       @default("Pending")
+  totalPrice        Int       @default(0)
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  property          Property     @relation(fields: [propertyId], references: [id])
+  user              User        @relation(fields: [userId], references: [id])
+}
+
