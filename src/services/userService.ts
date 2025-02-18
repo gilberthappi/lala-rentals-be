@@ -327,10 +327,10 @@ export class UserService {
     }
   }
   //update user role
-  public static async updateUserRole(userId: number): Promise<IResponse<any>> {
+  public static async updateUserRole(id: number): Promise<IResponse<any>> {
     try {
       const user = await prisma.user.findUnique({
-        where: { id: userId },
+        where: { id },
         include: { roles: true },
       });
 
@@ -356,7 +356,7 @@ export class UserService {
       const updatedHost = await prisma.userRoles.update({
         where: { id: user.roles[0].id },
         data: {
-          userId,
+          id,
           role: roles.HOST,
         },
       });

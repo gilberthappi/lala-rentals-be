@@ -69,7 +69,7 @@ export class UserController {
   @Put("/update/{id}")
   @Security("jwt")
   @Middlewares(checkRole(roles.ADMIN))
-  public updateUser(@Path() userId: string) {
-    return UserService.updateUserRole(Number.parseInt(userId));
+  public updateUser(@Path() id: number) {
+    return UserService.updateUserRole(id);
   }
 }
