@@ -23,6 +23,11 @@ import { checkRole } from "../middlewares";
 import { roles } from "../utils/roles";
 import AppError from "../utils/error";
 import { Request as ExpressRequest } from "express";
+import {
+  appendPhotoAttachments,
+  appendGallery,
+} from "../middlewares/fileHandler";
+import upload from "../utils/cloudinary";
 
 @Tags("Properties")
 @Route("/api/property")
@@ -78,7 +83,12 @@ export class PropertyController {
 
   @Post("/")
   @Security("jwt")
-  @Middlewares(checkRole(roles.HOST))
+  @Middlewares(
+    checkRole(roles.HOST),
+    upload.any(),
+    appendPhotoAttachments,
+    appendGallery,
+  )
   public async createProperty(
     @Body() property: CreatePropertyDto,
     @Request() request: Req,
@@ -88,7 +98,12 @@ export class PropertyController {
 
   @Put("/{id}")
   @Security("jwt")
-  @Middlewares(checkRole(roles.HOST))
+  @Middlewares(
+    checkRole(roles.HOST),
+    upload.any(),
+    appendPhotoAttachments,
+    appendGallery,
+  )
   public async updateProperty(
     @Path() id: number,
     @Body() propertyData: CreatePropertyDto,

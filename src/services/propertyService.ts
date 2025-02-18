@@ -19,6 +19,14 @@ export class PropertyService extends BaseService {
           location: property.location,
           description: property.description,
           pricePerNight: property.pricePerNight,
+          bedrooms: property.bedrooms ?? null,
+          bathrooms: property.bathrooms ?? null,
+          size: property.size ?? null,
+          thumbnail:
+            typeof property.thumbnail === "string"
+              ? property.thumbnail
+              : undefined,
+          gallery: property.gallery as string[],
         },
       });
       return {
@@ -178,6 +186,11 @@ export class PropertyService extends BaseService {
         where: { id: propertyId },
         data: {
           ...propertyData,
+          thumbnail:
+            typeof propertyData.thumbnail === "string"
+              ? propertyData.thumbnail
+              : undefined,
+          gallery: propertyData.gallery as string[],
         },
       });
       return {

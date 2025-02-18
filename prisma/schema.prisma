@@ -40,6 +40,12 @@ model Property {
   location                String
   description             String
   pricePerNight           String
+  bedrooms                Int?
+  bathrooms               Int?
+  size                    String?
+  thumbnail               String?
+  gallery                 String[]
+  petFriendly             Boolean       @default(false)
   createdAt               DateTime      @default(now())
   updatedAt               DateTime      @updatedAt
   isAcceptingBooking      Boolean       @default(true)

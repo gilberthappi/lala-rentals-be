@@ -45,6 +45,12 @@ export type TProperty = {
   location: string;
   description: string;
   pricePerNight: string;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  size?: string | null;
+  thumbnail: Express.Multer.File | string | null;
+  gallery: string[];
+  petFriendly: boolean;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -55,6 +61,12 @@ export interface CreatePropertyDto {
   location: string;
   description: string;
   pricePerNight: string;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  size?: string | null;
+  thumbnail: Express.Multer.File | string | null;
+  gallery: string[];
+  petFriendly: boolean;
 }
 
 export type TBookings = {
