@@ -67,4 +67,7 @@ app.use(function errorHandler(
   next();
 });
 
-app.listen(PORT, () => console.log(`API running on PORT ${PORT} wow!s`));
+app.listen(Number(PORT), "0.0.0.0", () => {
+  console.log(`API running on PORT ${PORT} (Render should detect this)`);
+});
+
