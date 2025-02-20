@@ -44,7 +44,7 @@ export type TProperty = {
   title: string;
   location: string;
   description: string;
-  pricePerNight: string;
+  pricePerNight: number;
   bedrooms?: number | null;
   bathrooms?: number | null;
   size?: string | null;
@@ -56,11 +56,10 @@ export type TProperty = {
 };
 
 export interface CreatePropertyDto {
-  userId: number;
   title: string;
   location: string;
   description: string;
-  pricePerNight: string;
+  pricePerNight: number;
   bedrooms?: number | null;
   bathrooms?: number | null;
   size?: string | null;
@@ -82,12 +81,9 @@ export type TBookings = {
 };
 
 export interface CreateBookingDto {
-  userId: number;
   propertyId: number;
   checkInDate: Date;
   checkOutDate: Date;
-  bookingStatus: string;
-  totalPrice: number;
 }
 
 export interface IResponse<T> {

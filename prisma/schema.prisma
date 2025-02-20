@@ -39,7 +39,7 @@ model Property {
   title                   String
   location                String
   description             String
-  pricePerNight           String
+  pricePerNight           Int          @default(1)
   bedrooms                Int?
   bathrooms               Int?
   size                    String?

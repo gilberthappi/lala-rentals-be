@@ -46,9 +46,16 @@ export class BookingService extends BaseService {
         throw new AppError("Property not found", 404);
       }
 
+      // Ensure pricePerNight is a valid number
+      const pricePerNight = Number(property.pricePerNight);
+
+      if (isNaN(pricePerNight)) {
+        throw new AppError("Invalid property price per night", 400);
+      }
+
       // Calculate total price based on the number of nights
       const totalNights = this.calculateNights(checkInDate, checkOutDate);
-      const totalPrice = totalNights * Number(property.pricePerNight);
+      const totalPrice = totalNights * pricePerNight;
 
       // Create a new booking
       const newBooking = await prisma.bookings.create({
