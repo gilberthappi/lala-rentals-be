@@ -18,6 +18,72 @@ import { OAuth2Client } from "google-auth-library";
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export class UserService {
+  public static async googleAuthenticate(token: string) {
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      const payload = ticket.getPayload();
+      if (!payload) {
+        throw new AppError("Invalid Google token", 401);
+      }
+
+      const { email, given_name, family_name } = payload!;
+      if (!email) {
+        throw new AppError("Email not found in Google token", 401);
+      }
+
+      if (!given_name || !family_name) {
+        throw new AppError("Names not found in Google token", 401);
+      }
+
+      const userExists = await prisma.user.findFirst({
+        where: { email },
+        include: { roles: true },
+      });
+
+      if (!userExists) {
+        await prisma.$transaction(async (tx) => {
+          const user = await tx.user.create({
+            data: {
+              firstName: given_name,
+              lastName: family_name,
+              email,
+              password: "",
+            },
+          });
+
+          await tx.userRoles.create({
+            data: {
+              userId: user.id,
+              role: roles.RENTER,
+            },
+          });
+        });
+      }
+
+      const jwtToken = jwt.sign(
+        { email: userExists!.email },
+        process.env.JWT_SECRET!,
+      );
+
+      return {
+        message: "Google authentication successful",
+        statusCode: 200,
+        data: {
+          token: jwtToken,
+          firstName: userExists!.firstName,
+          lastName: userExists!.lastName,
+          email: userExists!.email,
+          id: userExists!.id,
+          roles: userExists!.roles.map((roleRecord) => roleRecord.role) || [],
+        },
+      };
+    } catch (error) {
+      throw new AppError(error, 500);
+    }
+  }
   public static async getUsers(): Promise<IResponse<IUser[]>> {
     try {
       const users = await prisma.user.findMany();
@@ -226,7 +292,7 @@ export class UserService {
     }
   }
 
-  // Get users count by month, filtered by year
+  // Get renters count by month, filtered by year
   public static async getUsersCountByMonth(
     year: number,
   ): Promise<IResponse<any>> {
@@ -236,6 +302,11 @@ export class UserService {
           createdAt: {
             gte: new Date(`${year}-01-01`),
             lt: new Date(`${year + 1}-01-01`),
+          },
+          roles: {
+            some: {
+              role: roles.RENTER,
+            },
           },
         },
         select: {
@@ -251,79 +322,51 @@ export class UserService {
       });
 
       return {
-        message: "Users count by month fetched successfully",
+        message: "Renters count by month fetched successfully",
         statusCode: 200,
         data: usersCountByMonth,
       };
     } catch (error) {
-      throw new AppError("Error fetching users count by month", 500);
+      throw new AppError("Error fetching renters count by month", 500);
     }
   }
 
-  public static async googleAuthenticate(token: string) {
+  // Get hosts count by month, filtered by year
+  public static async getHostsCountByMonth(
+    year: number,
+  ): Promise<IResponse<any>> {
     try {
-      const ticket = await client.verifyIdToken({
-        idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID,
-      });
-      const payload = ticket.getPayload();
-      if (!payload) {
-        throw new AppError("Invalid Google token", 401);
-      }
-
-      const { email, given_name, family_name } = payload!;
-      if (!email) {
-        throw new AppError("Email not found in Google token", 401);
-      }
-
-      if (!given_name || !family_name) {
-        throw new AppError("Names not found in Google token", 401);
-      }
-
-      const userExists = await prisma.user.findFirst({
-        where: { email },
-        include: { roles: true },
-      });
-
-      if (!userExists) {
-        await prisma.$transaction(async (tx) => {
-          const user = await tx.user.create({
-            data: {
-              firstName: given_name,
-              lastName: family_name,
-              email,
-              password: "",
+      const users = await prisma.user.findMany({
+        where: {
+          createdAt: {
+            gte: new Date(`${year}-01-01`),
+            lt: new Date(`${year + 1}-01-01`),
+          },
+          roles: {
+            some: {
+              role: roles.HOST,
             },
-          });
-
-          await tx.userRoles.create({
-            data: {
-              userId: user.id,
-              role: roles.RENTER,
-            },
-          });
-        });
-      }
-
-      const jwtToken = jwt.sign(
-        { email: userExists!.email },
-        process.env.JWT_SECRET!,
-      );
+          },
+        },
+        select: {
+          createdAt: true,
+        },
+      });
+      // Initialize an array with 12 months (0 for each month)
+      const usersCountByMonth = Array(12).fill(0);
+      // Group by month using JavaScript
+      users.forEach((user) => {
+        const month = new Date(user.createdAt).getMonth(); // getMonth returns 0-based month
+        usersCountByMonth[month]++;
+      });
 
       return {
-        message: "Google authentication successful",
+        message: "Hosts count by month fetched successfully",
         statusCode: 200,
-        data: {
-          token: jwtToken,
-          firstName: userExists!.firstName,
-          lastName: userExists!.lastName,
-          email: userExists!.email,
-          id: userExists!.id,
-          roles: userExists!.roles.map((roleRecord) => roleRecord.role) || [],
-        },
+        data: usersCountByMonth,
       };
     } catch (error) {
-      throw new AppError(error, 500);
+      throw new AppError("Error fetching hosts count by month", 500);
     }
   }
   //update user role

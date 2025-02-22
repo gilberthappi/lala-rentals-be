@@ -66,6 +66,16 @@ export class UserController {
     return UserService.getUsersCountByMonth(year);
   }
 
+  @Get("/user/renter-count-by-month/{year}")
+  public getRentersCountByMonth(year: number) {
+    return UserService.getUsersCountByMonth(year);
+  }
+
+  @Get("/user/host-count-by-month/{year}")
+  public getHostsCountByMonth(year: number) {
+    return UserService.getHostsCountByMonth(year);
+  }
+
   @Put("/update/{id}")
   @Security("jwt")
   @Middlewares(checkRole(roles.ADMIN))
