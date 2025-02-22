@@ -9,7 +9,6 @@ export const appendPhotoAttachments = async (
   try {
     if (req.files) {
       const files = req.files as Express.Multer.File[];
-      req.body.photo = files.find((file) => file.fieldname == "photo")?.path;
       req.body.thumbnail = files.find(
         (file) => file.fieldname == "thumbnail",
       )?.path;

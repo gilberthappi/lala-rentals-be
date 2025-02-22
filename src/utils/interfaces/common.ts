@@ -64,7 +64,7 @@ export interface CreatePropertyDto {
   bathrooms?: number | null;
   size?: string | null;
   thumbnail: Express.Multer.File | string | null;
-  gallery: string[];
+  gallery?: string[];
   petFriendly: boolean;
 }
 

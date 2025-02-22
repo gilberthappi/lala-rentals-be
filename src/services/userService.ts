@@ -86,7 +86,11 @@ export class UserService {
   }
   public static async getUsers(): Promise<IResponse<IUser[]>> {
     try {
-      const users = await prisma.user.findMany();
+      const users = await prisma.user.findMany({
+        include: {
+          roles: true,
+        },
+      });
       return {
         message: "welcome",
         statusCode: 200,

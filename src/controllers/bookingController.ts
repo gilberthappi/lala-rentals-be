@@ -27,6 +27,18 @@ import { Request as ExpressRequest } from "express";
 @Tags("Bookings")
 @Route("/api/booking")
 export class BookingController {
+  @Get("/my")
+  @Security("jwt")
+  @Middlewares(checkRole(roles.RENTER))
+  public async getAllMyBookings(
+    @Request() request: Req,
+  ): Promise<IResponse<TBookings[]>> {
+    if (!request.user) {
+      throw new AppError("User not authenticated", 401);
+    }
+    const userId = request.user!.id;
+    return BookingService.getAllMyBookings(userId);
+  }
   @Get("/booking/host/{year}")
   @Security("jwt")
   @Middlewares(checkRole(roles.HOST))
@@ -40,6 +52,21 @@ export class BookingController {
     }
     return BookingService.BookingByMonth(Number(userId), year);
   }
+
+  @Get("/booking/unconfirmed/{year}")
+  @Security("jwt")
+  @Middlewares(checkRole(roles.HOST))
+  public async getUnconfirmedBookingCountByMonth(
+    @Request() request: ExpressRequest,
+    @Path() year: number,
+  ) {
+    const userId = request.user!.id;
+    if (!userId) {
+      throw new AppError("Host ID is missing", 400);
+    }
+    return BookingService.UnconfirmedBookingByMonth(Number(userId), year);
+  }
+
   @Post("/")
   @Security("jwt")
   public async createBooking(

@@ -89,6 +89,13 @@ export class BookingService extends BaseService {
     try {
       const booking = await prisma.bookings.findUnique({
         where: { id },
+        include: {
+          property: {
+            include: {
+              user: true,
+            },
+          },
+        },
       });
       if (booking) {
         return { statusCode: 200, message: "Booking found", data: booking };
@@ -110,6 +117,33 @@ export class BookingService extends BaseService {
       };
     } catch (error) {
       return { statusCode: 500, message: "Failed to fetch bookings", error };
+    }
+  }
+
+  public static async getAllMyBookings(
+    userId: number,
+  ): Promise<IResponse<TBookings[]>> {
+    try {
+      const booking = await prisma.bookings.findMany({
+        where: {
+          userId: userId,
+        },
+        include: {
+          property: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      });
+
+      return {
+        statusCode: 200,
+        message: "bookings fetched successfully",
+        data: booking,
+      };
+    } catch (error) {
+      throw new AppError(error, 500);
     }
   }
 
@@ -151,13 +185,25 @@ export class BookingService extends BaseService {
     year: number,
   ): Promise<IResponse<number[]>> {
     try {
+      const properties = await prisma.property.findMany({
+        where: { userId },
+        select: { id: true },
+      });
+
+      if (properties.length === 0) {
+        throw new AppError("No properties found for the user", 404);
+      }
+
+      const propertyIds = properties.map((property) => property.id);
+
       const bookings = await prisma.bookings.findMany({
         where: {
-          userId,
+          propertyId: { in: propertyIds },
           createdAt: {
             gte: new Date(`${year}-01-01`),
             lt: new Date(`${year + 1}-01-01`),
           },
+          bookingStatus: "confirmed",
         },
         select: {
           createdAt: true,
@@ -167,12 +213,57 @@ export class BookingService extends BaseService {
       const bookingsByMonth = Array(12).fill(0);
 
       bookings.forEach((book) => {
-        const month = new Date(book.createdAt).getMonth(); // Get the month (0-based)
+        const month = new Date(book.createdAt).getMonth();
         bookingsByMonth[month]++;
       });
 
       return {
-        message: "Booking post count by month fetched successfully",
+        message: "Confirmed booking count by month fetched successfully",
+        statusCode: 200,
+        data: bookingsByMonth,
+      };
+    } catch (error) {
+      throw new AppError(error, 500);
+    }
+  }
+
+  public static async UnconfirmedBookingByMonth(
+    userId: number,
+    year: number,
+  ): Promise<IResponse<number[]>> {
+    try {
+      const properties = await prisma.property.findMany({
+        where: { userId },
+        select: { id: true },
+      });
+
+      if (properties.length === 0) {
+        throw new AppError("No properties found for the user", 404);
+      }
+
+      const propertyIds = properties.map((property) => property.id);
+
+      const bookings = await prisma.bookings.findMany({
+        where: {
+          propertyId: { in: propertyIds },
+          createdAt: {
+            gte: new Date(`${year}-01-01`),
+            lt: new Date(`${year + 1}-01-01`),
+          },
+          bookingStatus: "Pending",
+        },
+        select: { createdAt: true },
+      });
+
+      const bookingsByMonth = Array(12).fill(0);
+
+      bookings.forEach((book) => {
+        const month = new Date(book.createdAt).getMonth();
+        bookingsByMonth[month]++;
+      });
+
+      return {
+        message: "Unconfirmed booking count by month fetched successfully",
         statusCode: 200,
         data: bookingsByMonth,
       };
