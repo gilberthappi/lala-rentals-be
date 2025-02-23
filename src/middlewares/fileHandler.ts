@@ -33,3 +33,18 @@ export const appendGallery = async (
     next(error);
   }
 };
+
+export const appendImage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    if (req.file) {
+      req.body.image = req.file.path;
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+};

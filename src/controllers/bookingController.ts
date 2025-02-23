@@ -68,15 +68,10 @@ export class BookingController {
   }
 
   @Post("/")
-  @Security("jwt")
   public async createBooking(
     @Body() bookingData: CreateBookingDto,
-    @Request() request: Req,
   ): Promise<IResponse<TBookings>> {
-    if (!request.user) {
-      throw new AppError("User not authenticated", 401);
-    }
-    return new BookingService(request).createBooking(bookingData);
+    return BookingService.createBooking(bookingData);
   }
 
   @Get("/{id}")

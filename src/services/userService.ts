@@ -29,7 +29,7 @@ export class UserService {
         throw new AppError("Invalid Google token", 401);
       }
 
-      const { email, given_name, family_name } = payload!;
+      const { email, given_name, family_name, picture } = payload!;
       if (!email) {
         throw new AppError("Email not found in Google token", 401);
       }
@@ -43,6 +43,8 @@ export class UserService {
         include: { roles: true },
       });
 
+      const hashedPassword = await hash("abc123", 10);
+
       if (!userExists) {
         await prisma.$transaction(async (tx) => {
           const user = await tx.user.create({
@@ -50,7 +52,8 @@ export class UserService {
               firstName: given_name,
               lastName: family_name,
               email,
-              password: "",
+              password: hashedPassword,
+              image: picture,
             },
           });
 
@@ -84,6 +87,7 @@ export class UserService {
       throw new AppError(error, 500);
     }
   }
+
   public static async getUsers(): Promise<IResponse<IUser[]>> {
     try {
       const users = await prisma.user.findMany({
@@ -158,6 +162,7 @@ export class UserService {
             lastName: user.lastName,
             email: user.email,
             password: hashedPassword,
+            image: typeof user.image === "string" ? user.image : undefined,
           },
         });
 
@@ -184,6 +189,7 @@ export class UserService {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
+          image: user.image,
           roles: [roles.RENTER],
         },
         statusCode: 201,

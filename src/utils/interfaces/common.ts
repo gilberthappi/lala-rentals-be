@@ -13,6 +13,7 @@ export type TUser = {
   firstName: string;
   lastName: string;
   password: string;
+  image: Express.Multer.File | string | null;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   roles?: { id: number; role: string; userId: number }[];
@@ -30,7 +31,7 @@ export interface ILoginUser extends Pick<IUser, "email" | "password"> {}
 export interface ISignUpUser
   extends Pick<
     IUser,
-    "email" | "password" | "firstName" | "lastName" | "roles"
+    "email" | "password" | "firstName" | "lastName" | "roles" | "image"
   > {}
 
 export type TErrorResponse = TsoaResponse<
@@ -81,6 +82,7 @@ export type TBookings = {
 };
 
 export interface CreateBookingDto {
+  userId: number;
   propertyId: number;
   checkInDate: Date;
   checkOutDate: Date;

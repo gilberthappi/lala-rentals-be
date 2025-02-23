@@ -11,31 +11,11 @@ const prisma = new PrismaClient();
 
 export class BookingService extends BaseService {
   // Create a new booking
-  public async createBooking(
+  public static async createBooking(
     bookingData: CreateBookingDto,
   ): Promise<IResponse<TBookings>> {
     try {
-      const { propertyId, checkInDate, checkOutDate } = bookingData;
-      const userId = this.request.user!.id;
-
-      // Check if a booking already exists for the user and property
-      const existingBooking = await prisma.bookings.findFirst({
-        where: { propertyId, userId },
-      });
-
-      if (existingBooking) {
-        // Update existing booking
-        const updatedBooking = await prisma.bookings.update({
-          where: { id: existingBooking.id },
-          data: { checkInDate, checkOutDate },
-        });
-
-        return {
-          statusCode: 200,
-          message: "Booking updated successfully",
-          data: updatedBooking,
-        };
-      }
+      const { userId, propertyId, checkInDate, checkOutDate } = bookingData;
 
       // Retrieve property details
       const property = await prisma.property.findUnique({
@@ -73,7 +53,7 @@ export class BookingService extends BaseService {
   }
 
   // Helper function to calculate the number of nights
-  private calculateNights(checkIn: Date, checkOut: Date): number {
+  private static calculateNights(checkIn: Date, checkOut: Date): number {
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
     return Math.ceil(
