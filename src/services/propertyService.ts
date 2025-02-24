@@ -71,7 +71,11 @@ export class PropertyService extends BaseService {
     try {
       const properties = await prisma.property.findMany({
         include: {
-          bookings: true,
+          bookings: {
+            include: {
+              user: true,
+            },
+          },
           user: true,
         },
       });
@@ -95,7 +99,11 @@ export class PropertyService extends BaseService {
           userId: userId,
         },
         include: {
-          bookings: true,
+          bookings: {
+            include: {
+              user: true,
+            },
+          },
         },
       });
 

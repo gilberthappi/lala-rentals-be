@@ -207,6 +207,40 @@ export class BookingService extends BaseService {
     }
   }
 
+  public static async getBookingBookinByHost(
+    userId: number,
+  ): Promise<IResponse<TBookings[]>> {
+    try {
+      const properties = await prisma.property.findMany({
+        where: { userId },
+        select: { id: true },
+      });
+
+      if (properties.length === 0) {
+        throw new AppError("No properties found for the user", 404);
+      }
+
+      const propertyIds = properties.map((property) => property.id);
+
+      const bookings = await prisma.bookings.findMany({
+        where: {
+          propertyId: { in: propertyIds },
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      return {
+        message: "Bookings by host fetched successfully",
+        statusCode: 200,
+        data: bookings,
+      };
+    } catch (error) {
+      throw new AppError(error, 500);
+    }
+  }
+
   public static async UnconfirmedBookingByMonth(
     userId: number,
     year: number,

@@ -39,6 +39,18 @@ export class BookingController {
     const userId = request.user!.id;
     return BookingService.getAllMyBookings(userId);
   }
+
+  @Get("/booking/host")
+  @Security("jwt")
+  @Middlewares(checkRole(roles.HOST))
+  public async getBookingBookinByHost(@Request() request: ExpressRequest) {
+    const userId = request.user!.id;
+    if (!userId) {
+      throw new AppError("Host ID is missing", 400);
+    }
+    return BookingService.getBookingBookinByHost(userId);
+  }
+
   @Get("/booking/host/{year}")
   @Security("jwt")
   @Middlewares(checkRole(roles.HOST))
@@ -52,7 +64,6 @@ export class BookingController {
     }
     return BookingService.BookingByMonth(Number(userId), year);
   }
-
   @Get("/booking/unconfirmed/{year}")
   @Security("jwt")
   @Middlewares(checkRole(roles.HOST))
